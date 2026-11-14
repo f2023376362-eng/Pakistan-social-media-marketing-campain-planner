@@ -1,125 +1,156 @@
 """
-Page 1: Executive Overview Dashboard.
-Displays status of loaded datasets, record counts, schema validation, key metrics,
-available processing engines, and quick action shortcuts.
+Page 1: Overview & Brand Dataset Ingestion.
+Displays system overview, brand provenance indicators, empty-state banners,
+and brand-only CSV/Excel dataset upload with strict schema validation.
 """
 
+from datetime import datetime, timezone
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 
-from src.dataset_manager import get_bundled_youtube_sample, get_bundled_advertising_sample
-from src.advertising_analytics import compute_portfolio_macro_summary
-from src.sentiment_engine import analyze_youtube_sentiment
-from src.bigdata_engine import check_spark_environment
+from src.youtube_scraper import (
+    get_api_status,
+    VIDEO_SCHEMA_COLUMNS,
+    COMMENT_SCHEMA_COLUMNS,
+    BRAND_VIDEO_SCHEMA_COLUMNS,
+    BRAND_COMMENT_SCHEMA_COLUMNS,
+)
+from src.dataset_manager import (
+    load_file_to_dataframe,
+    validate_brand_dataset,
+    clean_comment_data,
+    clean_video_metadata,
+)
+
 
 def render_page_overview():
-    st.title("Executive Overview & Unified System Status")
+    st.title("Project 3: Brand Social Data & Preprocessing Pipeline")
     st.markdown("""
-    Welcome to the **Unified Marketing Intelligence & Big Data Analytics Platform**.  
-    This unified platform integrates **Project A (YouTube Comment Scraper & Data Cleaning)** with **Project B (Digital Advertising Budget Optimizer & Big Data Processing Lab)**.
+    **Foundation for Pakistan Social Audience & Campaign Intelligence Engine.**  
+    Ingests, validates, standardizes, and inspects brand-related social media datasets across YouTube and social channels.
     """)
     st.divider()
-    
-    # Dataset Status Cards
-    yt_df = st.session_state.get('youtube_clean_df')
-    ad_df = st.session_state.get('advertising_df')
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    # Card 1: YouTube Dataset
-    if yt_df is not None and not yt_df.empty:
-        col1.metric("YouTube Dataset", f"{len(yt_df):,} Comments", st.session_state.get('active_youtube_name', 'Loaded'))
-    else:
-        col1.metric("YouTube Dataset", "Not Loaded", "Upload CSV or Load Sample")
-        
-    # Card 2: Advertising Dataset
-    if ad_df is not None and not ad_df.empty:
-        col2.metric("Advertising Dataset", f"{len(ad_df):,} Records", st.session_state.get('active_ad_name', 'Loaded'))
-    else:
-        col2.metric("Advertising Dataset", "Not Loaded", "Upload CSV or Load Sample")
-        
-    # Card 3: Processing Engines
-    spark_ok, _ = check_spark_environment()
-    engine_status = "Pandas, MapReduce, Spark" if spark_ok else "Pandas, MapReduce (Spark Diagnostic)"
-    col3.metric("Processing Engines", "3 Supported", "Active & Available")
-    
-    # Card 4: Budget Optimizer Target
-    col4.metric("Budget Optimization Target", "Rs. 1,000,000", "Customizable Invariant")
-    
-    st.divider()
-    
-    # If neither dataset is loaded, display an informative empty state with quick actions
-    if (yt_df is None or yt_df.empty) and (ad_df is None or ad_df.empty):
-        st.info("💡 **Getting Started**: No datasets are currently loaded in session memory. You can upload your own CSV/Excel datasets or load bundled real sample datasets below:")
-        qcol1, qcol2 = st.columns(2)
-        with qcol1:
-            if st.button("📥 Load Bundled YouTube Sample (2,349 Comments)", use_container_width=True):
-                sample_yt = get_bundled_youtube_sample()
-                if sample_yt is not None:
-                    st.session_state['youtube_raw_df'] = sample_yt.copy()
-                    st.session_state['youtube_clean_df'] = sample_yt.copy()
-                    st.session_state['active_youtube_name'] = "Bundled Dual-Video YouTube Comments"
-                    st.rerun()
-        with qcol2:
-            if st.button("📥 Load Bundled Advertising Sample (250 Records)", use_container_width=True):
-                sample_ad = get_bundled_advertising_sample()
-                if sample_ad is not None:
-                    st.session_state['advertising_df'] = sample_ad.copy()
-                    st.session_state['active_ad_name'] = "Bundled Multi-Channel Ad Telemetry"
-                    st.rerun()
-                    
-    # Live Key Metric Highlights if data is present
-    if (yt_df is not None and not yt_df.empty) or (ad_df is not None and not ad_df.empty):
-        st.subheader("Active Key Performance Indicators")
-        kcol1, kcol2 = st.columns(2)
-        
-        with kcol1:
-            st.markdown("#### Project A: YouTube Audience Signals")
-            if yt_df is not None and not yt_df.empty:
-                c_col = 'comment' if 'comment' in yt_df.columns else yt_df.columns[0]
-                _, sent_meta = analyze_youtube_sentiment(yt_df, comment_col=c_col)
-                likes_sum = int(yt_df['likes'].sum()) if 'likes' in yt_df.columns else 0
-                replies_sum = int(yt_df['reply_count'].sum()) if 'reply_count' in yt_df.columns else 0
-                
-                subcol1, subcol2, subcol3 = st.columns(3)
-                subcol1.metric("Positive Sentiment", f"{sent_meta['positive_pct']}%")
-                subcol2.metric("Total Thumbs-Up Likes", f"{likes_sum:,}")
-                subcol3.metric("Total Thread Replies", f"{replies_sum:,}")
-            else:
-                st.caption("No YouTube dataset currently active.")
-                
-        with kcol2:
-            st.markdown("#### Project B: Advertising Performance")
-            if ad_df is not None and not ad_df.empty:
-                ad_macro = compute_portfolio_macro_summary(ad_df)
-                asub1, asub2, asub3 = st.columns(3)
-                asub1.metric("Macro ROAS", f"{ad_macro['macro_roas']:.2f}x")
-                asub2.metric("Total Spend", f"Rs. {ad_macro['total_spend']:,.0f}")
-                asub3.metric("Total Conversions", f"{ad_macro['total_conversions']:,}")
-            else:
-                st.caption("No Advertising dataset currently active.")
-                
-    st.markdown("### Unified System Architecture & Workflow")
-    st.markdown("""
-```text
-+---------------------------------------------------------------------------------------------------+
-|                        UNIFIED MARKETING INTELLIGENCE & BIG DATA PLATFORM                         |
-+-------------------------------------------------+-------------------------------------------------+
-|   PROJECT A: YOUTUBE COMMENT ANALYTICS & CLEANING|  PROJECT B: ADVERTISING BUDGET OPTIMIZER       |
-+-------------------------------------------------+-------------------------------------------------+
-| • YouTube Data API v3 Comment Harvester         | • Multi-Channel Paid Telemetry (FB, IG, GG, etc)|
-| • Raw CSV / Excel Ingestion & Deduplication     | • Core Marketing KPIs: CTR, CPC, CPA, CVR, ROAS |
-| • Descriptive Parametric & Gini Analytics       | • Big Data Engine Lab: Pandas, Chunk, MR, Spark |
-| • Rule-Based Lexicon Sentiment Approximation    | • Constrained Solver Allocating Target Budget   |
-| • 10-Year Temporal Trends & Word Frequencies    | • Interactive Audience & Demographic Breakdown  |
-+-------------------------------------------------+-------------------------------------------------+
-                                         \\       /
-                                          \\     /
-+---------------------------------------------------------------------------------------------------+
-|                        CROSS-DOMAIN SYNTHESIS & ACADEMIC GOVERNANCE                               |
-| • Non-Causal Attribution Boundary: Organic audience reactions vs Paid marketing conversion ROI    |
-| • SQLite Relational Database, Analytical Views, Automated Reports, & Natural Language Assistant    |
-+---------------------------------------------------------------------------------------------------+
-```
-    """)
 
+    # 1. Active Brand Provenance & Telemetry
+    st.subheader("1. Active Brand Data & Provenance Status")
+    
+    comments_df = st.session_state.get("comments_data")
+    videos_df = st.session_state.get("videos_data")
+    brand_name = st.session_state.get("brand_name", "None")
+    platform = st.session_state.get("platform", "YouTube")
+    data_source = st.session_state.get("data_source", "None")
+    upload_file = st.session_state.get("upload_filename", "None")
+
+    col1, col2, col3, col4 = st.columns(4)
+    api_stat = get_api_status()
+    col1.metric("YouTube Data API", "Active" if api_stat["configured"] else "Not Set", api_stat["status_label"])
+    col2.metric("Target Brand", brand_name if brand_name else "Not Set", f"Platform: {platform}")
+    col3.metric("Brand Comments", f"{len(comments_df):,}" if comments_df is not None else "0 (Empty)", f"Source: {data_source[:15]}")
+    col4.metric("Brand Posts/Videos", f"{len(videos_df):,}" if videos_df is not None else "0 (Empty)", f"File: {upload_file[:15]}")
+
+    # Empty State Notice
+    if comments_df is None and videos_df is None:
+        st.info("ℹ️ **Active Brand Data Status:** No brand dataset is currently loaded. Active directories (`data/raw/`, `data/processed/`, `data/brand/`) are clean and ready. Upload a genuine brand dataset below or collect live data in **Stage 2: YouTube Data Collection**.")
+    else:
+        st.success(f"✅ **Active Brand Dataset Loaded:** Analyzing `{brand_name}` on `{platform}` from `{data_source}` ({f'{len(comments_df):,} comments' if comments_df is not None else ''} {f'{len(videos_df):,} videos' if videos_df is not None else ''}).")
+
+    st.divider()
+
+    # 2. Genuine Brand Dataset Ingestion
+    st.subheader("2. Ingest Genuine Brand Social Dataset (CSV / Excel)")
+    st.caption("Upload authentic brand-related social media data. Synthetic or music-video datasets are prohibited in active analytics.")
+
+    with st.expander("📥 Upload Brand Dataset", expanded=(comments_df is None and videos_df is None)):
+        up_col1, up_col2 = st.columns([2, 1])
+        with up_col1:
+            uploaded_file = st.file_uploader(
+                "Choose a brand social dataset (.csv, .xlsx, .xls)",
+                type=["csv", "xlsx", "xls"],
+                key="brand_file_uploader"
+            )
+        with up_col2:
+            target_brand = st.text_input("Brand Name", value=brand_name if brand_name else "Audionic", help="e.g., Audionic, Zero Lifestyle, Khaadi, Jazz")
+            target_platform = st.selectbox("Platform", ["YouTube", "Instagram", "Facebook", "TikTok", "Multi-Platform"], index=0)
+
+        if uploaded_file is not None:
+            raw_df, err = load_file_to_dataframe(uploaded_file)
+            if err:
+                st.error(f"Failed to load file: {err}")
+            else:
+                is_valid, dtype, issues, stats = validate_brand_dataset(raw_df)
+                if not is_valid:
+                    st.error("❌ Schema Validation Failed:")
+                    for issue in issues:
+                        st.write(f"- {issue}")
+                else:
+                    st.success(f"✅ Schema Validation Passed: Identified as **Brand {dtype.capitalize()} Dataset** ({stats.get('rows', len(raw_df)):,} rows).")
+                    
+                    if st.button("Ingest & Activate Brand Dataset", type="primary"):
+                        now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                        clean_target = raw_df.copy()
+                        clean_target["brand_name"] = target_brand
+                        clean_target["platform"] = target_platform
+
+                        if dtype == "comments":
+                            cleaned, c_metrics = clean_comment_data(clean_target)
+                            st.session_state["comments_data"] = cleaned
+                            st.session_state["comments_source"] = f"Uploaded Brand CSV ({uploaded_file.name})"
+                            st.session_state["cleaning_audit"] = c_metrics
+                        else:
+                            cleaned, v_metrics = clean_video_metadata(clean_target)
+                            st.session_state["videos_data"] = cleaned
+                            st.session_state["videos_source"] = f"Uploaded Brand CSV ({uploaded_file.name})"
+                            st.session_state["cleaning_audit"] = v_metrics
+
+                        st.session_state["brand_name"] = target_brand
+                        st.session_state["platform"] = target_platform
+                        st.session_state["data_source"] = f"Uploaded Brand File ({uploaded_file.name})"
+                        st.session_state["upload_filename"] = uploaded_file.name
+                        st.session_state["collection_date"] = now_utc
+
+                        # Save into data/brand for persistent retention
+                        brand_dir = Path("data/brand")
+                        brand_dir.mkdir(parents=True, exist_ok=True)
+                        save_p = brand_dir / f"{target_brand.lower().replace(' ', '_')}_{dtype}_{uploaded_file.name}"
+                        cleaned.to_csv(save_p, index=False, encoding="utf-8")
+
+                        st.success(f"Brand dataset for **{target_brand}** successfully activated and saved to `{save_p}`!")
+                        st.rerun()
+
+    st.divider()
+
+    # 3. Standardized Schemas Summary
+    st.subheader("3. Enforced Standardized Schemas (Brand Social Data)")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("**Brand Video/Post Metadata Schema**")
+        st.code("""
+- platform (e.g. YouTube, Instagram)
+- brand_name (e.g. Audionic, Zero Lifestyle)
+- video_id / post_id (canonical identifier)
+- video_title / caption
+- video_description
+- channel_name / account_name
+- published_at (ISO 8601 UTC)
+- views (nullable numeric count)
+- likes (nullable numeric count)
+- comments_count (nullable numeric count)
+- source_url
+- collected_at (ISO 8601 UTC)
+        """, language="text")
+
+    with c2:
+        st.markdown("**Brand Comment Telemetry Schema**")
+        st.code("""
+- platform (e.g. YouTube, Instagram)
+- brand_name (e.g. Audionic, Zero Lifestyle)
+- video_id / post_id (parent reference)
+- comment_id (unique comment ID)
+- author (handle / username)
+- comment_text (normalized string)
+- likes (nullable numeric count)
+- reply_count (nullable numeric count)
+- published_at (ISO 8601 UTC)
+- collected_at (ISO 8601 UTC)
+        """, language="text")

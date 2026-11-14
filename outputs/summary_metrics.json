@@ -1,407 +1,548 @@
 {
   "inspection": {
-    "total_rows": 2349,
-    "total_columns": 7,
+    "total_rows": 5,
+    "total_columns": 8,
     "column_names": [
-      "type",
+      "comment_id",
+      "video_id",
       "author",
-      "comment",
+      "comment_text",
       "likes",
       "published_at",
       "reply_count",
-      "video_name"
+      "collected_at"
     ],
     "column_inspection": {
-      "type": {
+      "comment_id": {
         "dtype": "str",
-        "non_null_count": 2349,
+        "non_null_count": 5,
+        "null_count": 0,
+        "null_pct": 0.0,
+        "unique_values": 5
+      },
+      "video_id": {
+        "dtype": "str",
+        "non_null_count": 5,
         "null_count": 0,
         "null_pct": 0.0,
         "unique_values": 1
       },
       "author": {
         "dtype": "str",
-        "non_null_count": 2349,
+        "non_null_count": 5,
         "null_count": 0,
         "null_pct": 0.0,
-        "unique_values": 2159
+        "unique_values": 5
       },
-      "comment": {
+      "comment_text": {
         "dtype": "str",
-        "non_null_count": 2348,
-        "null_count": 1,
-        "null_pct": 0.043,
-        "unique_values": 2187
+        "non_null_count": 5,
+        "null_count": 0,
+        "null_pct": 0.0,
+        "unique_values": 5
       },
       "likes": {
         "dtype": "int64",
-        "non_null_count": 2349,
+        "non_null_count": 5,
         "null_count": 0,
         "null_pct": 0.0,
-        "unique_values": 280
+        "unique_values": 5
       },
       "published_at": {
         "dtype": "str",
-        "non_null_count": 2349,
+        "non_null_count": 5,
         "null_count": 0,
         "null_pct": 0.0,
-        "unique_values": 2349
+        "unique_values": 5
       },
       "reply_count": {
         "dtype": "int64",
-        "non_null_count": 2349,
+        "non_null_count": 5,
         "null_count": 0,
         "null_pct": 0.0,
-        "unique_values": 61
+        "unique_values": 5
       },
-      "video_name": {
+      "collected_at": {
         "dtype": "str",
-        "non_null_count": 2349,
+        "non_null_count": 5,
         "null_count": 0,
         "null_pct": 0.0,
-        "unique_values": 2
+        "unique_values": 1
       }
     },
     "full_duplicate_rows": 0,
-    "duplicate_comments_text": 161,
-    "distinct_repeated_comments": 53,
-    "duplicate_authors": 190,
-    "memory_bytes": 996468,
-    "memory_mb": 0.95
+    "duplicate_comments_text": 0,
+    "distinct_repeated_comments": 0,
+    "duplicate_authors": 0,
+    "duplicate_video_ids": 4,
+    "memory_bytes": 1301,
+    "memory_mb": 0.001
+  },
+  "cleaning": {
+    "dataset_type": "comments",
+    "initial_rows": 5,
+    "final_rows": 5,
+    "dropped_duplicates": 0,
+    "repeated_comment_texts": 0,
+    "unique_authors": 5,
+    "missing_values": {
+      "comment_id": 0,
+      "video_id": 0,
+      "author": 0,
+      "comment_text": 0,
+      "likes": 0,
+      "published_at": 0,
+      "reply_count": 0,
+      "collected_at": 0
+    }
   },
   "statistics": {
     "likes": {
-      "count": 2349,
-      "sum": 163912.0,
-      "mean": 69.779,
-      "std": 419.235,
-      "variance": 175758.272,
-      "min": 0.0,
-      "q25": 0.0,
-      "median": 1.0,
-      "q75": 12.0,
-      "max": 9441.0,
-      "iqr": 12.0,
-      "skewness": 14.026,
-      "kurtosis": 243.678,
-      "zero_count": 1027,
-      "zero_pct": 43.72,
-      "p90": 87.0,
-      "p95": 246.19999999999936,
-      "p99": 1299.1999999999998,
-      "top_1_pct_share": 48.23,
-      "gini_coefficient": 0.9336
+      "count": 5,
+      "sum": 277.0,
+      "mean": 55.4,
+      "std": 58.88,
+      "variance": 3466.8,
+      "min": 4.0,
+      "q25": 8.0,
+      "median": 35.0,
+      "q75": 88.0,
+      "max": 142.0,
+      "iqr": 80.0,
+      "skewness": 0.885,
+      "kurtosis": -0.764,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "p90": 120.4,
+      "p95": 131.2,
+      "p99": 139.84,
+      "top_1_pct_share": 51.26,
+      "gini_coefficient": 0.5141
     },
     "reply_count": {
-      "count": 2349,
-      "sum": 5662.0,
-      "mean": 2.41,
-      "std": 13.485,
-      "variance": 181.847,
+      "count": 5,
+      "sum": 20.0,
+      "mean": 4.0,
+      "std": 4.848,
+      "variance": 23.5,
       "min": 0.0,
-      "q25": 0.0,
-      "median": 0.0,
-      "q75": 0.0,
-      "max": 293.0,
-      "iqr": 0.0,
-      "skewness": 12.65,
-      "kurtosis": 208.695,
-      "zero_count": 1823,
-      "zero_pct": 77.61,
-      "p90": 3.0,
-      "p95": 9.0,
-      "p99": 45.039999999999964,
-      "top_1_pct_share": 46.79,
-      "gini_coefficient": 0.9387
+      "q25": 1.0,
+      "median": 2.0,
+      "q75": 5.0,
+      "max": 12.0,
+      "iqr": 4.0,
+      "skewness": 1.514,
+      "kurtosis": 2.072,
+      "zero_count": 1,
+      "zero_pct": 20.0,
+      "p90": 9.200000000000001,
+      "p95": 10.599999999999998,
+      "p99": 11.719999999999999,
+      "top_1_pct_share": 60.0,
+      "gini_coefficient": 0.56
     },
     "top_5_liked_comments": [
       {
-        "author": "@SKcreation776",
-        "likes": 9441,
-        "reply_count": 150,
-        "published_at": "2019-04-07T05:56:39Z",
-        "comment": "How many likes for yash dance ....salaam Rocky bhai",
-        "comment_preview": "How many likes for yash dance ....salaam Rocky bhai"
+        "author": "@AhmedKhanOfficial",
+        "likes": 142,
+        "reply_count": 12,
+        "published_at": "2026-03-11T09:15:30Z",
+        "comment_text": "Exceptional breakdown of audience trends! Really helpful for understanding demographic growth.",
+        "comment_preview": "Exceptional breakdown of audience trends! Really helpful for understanding demographic growth."
       },
       {
-        "author": "@SWyra75",
-        "likes": 7631,
-        "reply_count": 276,
-        "published_at": "2024-01-01T18:14:01Z",
-        "comment": "Hanji sab ne shoor machaya tha 2026 lo agya khush ab dobara gana sune 😂🖐🏻😩",
-        "comment_preview": "Hanji sab ne shoor machaya tha 2026 lo agya khush ab dobara gana sune 😂🖐🏻😩"
+        "author": "@FatimaZara",
+        "likes": 88,
+        "reply_count": 5,
+        "published_at": "2026-03-11T11:42:10Z",
+        "comment_text": "Great analysis, but what about youth digital adoption in secondary cities like Multan and Faisalabad?",
+        "comment_preview": "Great analysis, but what about youth digital adoption in secondary cities like Multan and Faisalabad?"
       },
       {
-        "author": "@AnilKumar-qu3xb",
-        "likes": 7517,
-        "reply_count": 104,
-        "published_at": "2022-04-14T19:19:45Z",
-        "comment": "When yash begin dance from 2:13 to last just fire🔥 it gave me goosebumps",
-        "comment_preview": "When yash begin dance from 2:13 to last just fire🔥 it gave me goosebumps"
+        "author": "@BilalTech",
+        "likes": 35,
+        "reply_count": 1,
+        "published_at": "2026-03-12T15:20:00Z",
+        "comment_text": "Very informative and practical insights. Keep up the high quality work!",
+        "comment_preview": "Very informative and practical insights. Keep up the high quality work!"
       },
       {
-        "author": "@rockstarabhi9971",
-        "likes": 7069,
-        "reply_count": 89,
-        "published_at": "2021-02-19T15:46:03Z",
-        "comment": "Yash's Attitude is Amazing😍🤩\nNeha's Voice was Awesome. 🎵\nMouni's Dance🔥🔥",
-        "comment_preview": "Yash's Attitude is Amazing😍🤩\nNeha's Voice was Awesome. 🎵\nMouni's Dance🔥🔥"
+        "author": "@UsmanViewer",
+        "likes": 8,
+        "reply_count": 0,
+        "published_at": "2026-03-13T08:05:45Z",
+        "comment_text": "Audio was slightly low during the middle section, please fix microphone levels next time.",
+        "comment_preview": "Audio was slightly low during the middle section, please fix microphone levels next time."
       },
       {
-        "author": "@chanchalyadav9233",
-        "likes": 4512,
-        "reply_count": 40,
-        "published_at": "2021-08-04T10:29:31Z",
-        "comment": "Yash's attitude🔥+ mouni's dance😍+ Neha's voice🎤= ❤️❤️\n        Edit:- 2.4K likes😮😂\n                  Now 4.4K in 2026😶‍🌫️",
-        "comment_preview": "Yash's attitude🔥+ mouni's dance😍+ Neha's voice🎤= ❤️❤️\n        Edit:- 2.4K likes😮😂\n                  Now 4.4K in 2026😶‍🌫️"
+        "author": "@PakistaniConsumer",
+        "likes": 4,
+        "reply_count": 2,
+        "published_at": "2026-03-14T18:30:12Z",
+        "comment_text": "Not satisfied with the statistical assumptions regarding inflation metrics.",
+        "comment_preview": "Not satisfied with the statistical assumptions regarding inflation metrics."
       }
     ],
     "top_5_replied_comments": [
       {
-        "author": "@unitedgamer_10",
-        "reply_count": 293,
-        "likes": 2992,
-        "published_at": "2021-03-12T17:57:52Z",
-        "comment": "Legends are watching this after 5 years😂😂",
-        "comment_preview": "Legends are watching this after 5 years😂😂"
+        "author": "@AhmedKhanOfficial",
+        "reply_count": 12,
+        "likes": 142,
+        "published_at": "2026-03-11T09:15:30Z",
+        "comment_text": "Exceptional breakdown of audience trends! Really helpful for understanding demographic growth.",
+        "comment_preview": "Exceptional breakdown of audience trends! Really helpful for understanding demographic growth."
       },
       {
-        "author": "@SWyra75",
-        "reply_count": 276,
-        "likes": 7631,
-        "published_at": "2024-01-01T18:14:01Z",
-        "comment": "Hanji sab ne shoor machaya tha 2026 lo agya khush ab dobara gana sune 😂🖐🏻😩",
-        "comment_preview": "Hanji sab ne shoor machaya tha 2026 lo agya khush ab dobara gana sune 😂🖐🏻😩"
+        "author": "@FatimaZara",
+        "reply_count": 5,
+        "likes": 88,
+        "published_at": "2026-03-11T11:42:10Z",
+        "comment_text": "Great analysis, but what about youth digital adoption in secondary cities like Multan and Faisalabad?",
+        "comment_preview": "Great analysis, but what about youth digital adoption in secondary cities like Multan and Faisalabad?"
       },
       {
-        "author": "@loveall2547",
-        "reply_count": 163,
-        "likes": 2990,
-        "published_at": "2020-12-17T10:29:23Z",
-        "comment": "Who came to watch the song on YouTube after remembering the song like me😆😀👍",
-        "comment_preview": "Who came to watch the song on YouTube after remembering the song like me😆😀👍"
+        "author": "@PakistaniConsumer",
+        "reply_count": 2,
+        "likes": 4,
+        "published_at": "2026-03-14T18:30:12Z",
+        "comment_text": "Not satisfied with the statistical assumptions regarding inflation metrics.",
+        "comment_preview": "Not satisfied with the statistical assumptions regarding inflation metrics."
       },
       {
-        "author": "@AdityaKamble-m6w",
-        "reply_count": 161,
-        "likes": 2875,
-        "published_at": "2024-12-13T12:24:29Z",
-        "comment": "2025 hajri lagwao 😅",
-        "comment_preview": "2025 hajri lagwao 😅"
+        "author": "@BilalTech",
+        "reply_count": 1,
+        "likes": 35,
+        "published_at": "2026-03-12T15:20:00Z",
+        "comment_text": "Very informative and practical insights. Keep up the high quality work!",
+        "comment_preview": "Very informative and practical insights. Keep up the high quality work!"
       },
       {
-        "author": "@S.A1947",
-        "reply_count": 161,
-        "likes": 4245,
-        "published_at": "2021-12-14T03:57:55Z",
-        "comment": "*I have seen many Indian films in my life but I have not seen films like KGF and Bahubali till date, so everything is absolutely equal, especially KGF this movie has made a different place in my heart forever. From the time till the director, all the people have done a wonderful job. Both these movies are the milestones of Indian cinema, which is priceless. Now I am proud of Indian cinema and I hope KGF 2 movie will write a new history in Indian cinema. Which will take Indian cinema to a different dimension. Heartfelt thanks to Indian cinema*",
-        "comment_preview": "*I have seen many Indian films in my life but I have not seen films like KGF and Bahubali till date, so everything is absolutely equal, especially KGF"
+        "author": "@UsmanViewer",
+        "reply_count": 0,
+        "likes": 8,
+        "published_at": "2026-03-13T08:05:45Z",
+        "comment_text": "Audio was slightly low during the middle section, please fix microphone levels next time.",
+        "comment_preview": "Audio was slightly low during the middle section, please fix microphone levels next time."
       }
     ],
-    "pearson_correlation": 0.7739,
-    "pearson_t_stat": 59.208,
+    "pearson_correlation": 0.9451,
+    "pearson_t_stat": 5.008,
     "pearson_p_value": "< 0.0001",
-    "spearman_correlation": 0.6715,
-    "spearman_t_stat": 43.898,
-    "spearman_df": 2347,
-    "spearman_p_value": "< 0.0001"
+    "spearman_correlation": 0.7,
+    "spearman_t_stat": 1.698,
+    "spearman_df": 3,
+    "spearman_p_value": "0.0896"
   },
   "temporal": {
-    "earliest_comment_utc": "2016-02-21 06:12:10 UTC",
-    "latest_comment_utc": "2026-10-30 10:31:37 UTC",
-    "total_span_days": 3904.2,
+    "earliest_comment_utc": "2026-03-11 09:15:30 UTC",
+    "latest_comment_utc": "2026-03-14 18:30:12 UTC",
+    "total_span_days": 3.4,
     "yearly_distribution": {
-      "2016": 44,
-      "2017": 25,
-      "2018": 52,
-      "2019": 92,
-      "2020": 103,
-      "2021": 104,
-      "2022": 67,
-      "2023": 15,
-      "2024": 35,
-      "2025": 138,
-      "2026": 1674
+      "2026": 5
     },
     "day_of_week_distribution": {
-      "Monday": 305,
-      "Tuesday": 323,
-      "Wednesday": 353,
-      "Thursday": 347,
-      "Friday": 328,
-      "Saturday": 339,
-      "Sunday": 354
+      "Monday": 0,
+      "Tuesday": 0,
+      "Wednesday": 2,
+      "Thursday": 1,
+      "Friday": 1,
+      "Saturday": 1,
+      "Sunday": 0
     },
     "hour_of_day_distribution_utc": {
-      "00:00": 21,
-      "01:00": 40,
-      "02:00": 58,
-      "03:00": 104,
-      "04:00": 111,
-      "05:00": 118,
-      "06:00": 133,
-      "07:00": 122,
-      "08:00": 117,
-      "09:00": 118,
-      "10:00": 124,
-      "11:00": 135,
-      "12:00": 136,
-      "13:00": 151,
-      "14:00": 149,
-      "15:00": 140,
-      "16:00": 138,
-      "17:00": 129,
-      "18:00": 98,
-      "19:00": 73,
-      "20:00": 50,
-      "21:00": 32,
-      "22:00": 35,
-      "23:00": 17
+      "00:00": 0,
+      "01:00": 0,
+      "02:00": 0,
+      "03:00": 0,
+      "04:00": 0,
+      "05:00": 0,
+      "06:00": 0,
+      "07:00": 0,
+      "08:00": 1,
+      "09:00": 1,
+      "10:00": 0,
+      "11:00": 1,
+      "12:00": 0,
+      "13:00": 0,
+      "14:00": 0,
+      "15:00": 1,
+      "16:00": 0,
+      "17:00": 0,
+      "18:00": 1,
+      "19:00": 0,
+      "20:00": 0,
+      "21:00": 0,
+      "22:00": 0,
+      "23:00": 0
     },
-    "era_breakdown": {
-      "launch_window_2016": 44,
-      "catalog_tail_2017_2024": 493,
-      "resurgence_phase_2025_2026": 1812,
-      "resurgence_share_pct": 77.14
+    "hourly_distribution": {
+      "00:00": 0,
+      "01:00": 0,
+      "02:00": 0,
+      "03:00": 0,
+      "04:00": 0,
+      "05:00": 0,
+      "06:00": 0,
+      "07:00": 0,
+      "08:00": 1,
+      "09:00": 1,
+      "10:00": 0,
+      "11:00": 1,
+      "12:00": 0,
+      "13:00": 0,
+      "14:00": 0,
+      "15:00": 1,
+      "16:00": 0,
+      "17:00": 0,
+      "18:00": 1,
+      "19:00": 0,
+      "20:00": 0,
+      "21:00": 0,
+      "22:00": 0,
+      "23:00": 0
     }
   },
   "text": {
-    "total_analyzed_comments": 2348,
+    "total_analyzed_comments": 5,
     "char_length": {
-      "min": 1,
-      "mean": 34.74,
-      "median": 24.0,
-      "max": 673,
-      "std": 46.31
+      "min": 71,
+      "mean": 86.0,
+      "median": 89.0,
+      "max": 101,
+      "std": 12.69
     },
     "word_count": {
-      "min": 1,
-      "mean": 6.55,
-      "median": 4.0,
-      "max": 137
+      "min": 9,
+      "mean": 12.0,
+      "median": 11.0,
+      "max": 15
     },
     "expression_counts": {
-      "comments_with_question": 76,
-      "question_pct": 3.24,
-      "comments_with_exclamation": 46,
-      "exclamation_pct": 1.96,
-      "comments_with_emojis": 1149,
-      "emoji_pct": 48.94
+      "comments_with_question": 1,
+      "question_pct": 20.0,
+      "comments_with_exclamation": 2,
+      "exclamation_pct": 40.0,
+      "comments_with_emojis": 0,
+      "emoji_pct": 0.0
     },
     "top_keywords": [
       {
-        "keyword": "kon",
-        "count": 142
+        "keyword": "exceptional",
+        "count": 1
       },
       {
-        "keyword": "yash",
-        "count": 114
+        "keyword": "breakdown",
+        "count": 1
       },
       {
-        "keyword": "love",
-        "count": 108
+        "keyword": "audience",
+        "count": 1
       },
       {
-        "keyword": "anyone",
-        "count": 92
+        "keyword": "trends",
+        "count": 1
       },
       {
-        "keyword": "dance",
-        "count": 84
+        "keyword": "really",
+        "count": 1
       },
       {
-        "keyword": "nice",
-        "count": 79
+        "keyword": "helpful",
+        "count": 1
       },
       {
-        "keyword": "kgf",
-        "count": 76
+        "keyword": "understanding",
+        "count": 1
       },
       {
-        "keyword": "arjun",
-        "count": 73
+        "keyword": "demographic",
+        "count": 1
       },
       {
-        "keyword": "mouni",
-        "count": 65
+        "keyword": "growth",
+        "count": 1
       },
       {
-        "keyword": "kapoor",
-        "count": 60
+        "keyword": "great",
+        "count": 1
       },
       {
-        "keyword": "raha",
-        "count": 57
+        "keyword": "analysis",
+        "count": 1
       },
       {
-        "keyword": "kareena",
-        "count": 56
+        "keyword": "what",
+        "count": 1
       },
       {
-        "keyword": "here",
-        "count": 55
+        "keyword": "youth",
+        "count": 1
       },
       {
-        "keyword": "bhai",
-        "count": 54
+        "keyword": "digital",
+        "count": 1
       },
       {
-        "keyword": "sun",
-        "count": 54
+        "keyword": "adoption",
+        "count": 1
       },
       {
-        "keyword": "movie",
-        "count": 52
+        "keyword": "secondary",
+        "count": 1
       },
       {
-        "keyword": "roy",
-        "count": 47
+        "keyword": "cities",
+        "count": 1
       },
       {
-        "keyword": "rocky",
-        "count": 44
+        "keyword": "multan",
+        "count": 1
       },
       {
-        "keyword": "years",
-        "count": 43
+        "keyword": "faisalabad",
+        "count": 1
       },
       {
-        "keyword": "best",
-        "count": 41
+        "keyword": "informative",
+        "count": 1
       },
       {
-        "keyword": "honey",
-        "count": 41
+        "keyword": "practical",
+        "count": 1
       },
       {
-        "keyword": "his",
-        "count": 40
+        "keyword": "insights",
+        "count": 1
       },
       {
-        "keyword": "indian",
-        "count": 34
+        "keyword": "keep",
+        "count": 1
       },
       {
-        "keyword": "gali",
-        "count": 34
+        "keyword": "high",
+        "count": 1
       },
       {
-        "keyword": "listening",
-        "count": 34
+        "keyword": "quality",
+        "count": 1
       }
     ],
-    "thematic_mentions": {
-      "kareena_kapoor": 56,
-      "honey_singh": 49,
-      "arjun_kapoor": 70,
-      "meet_bros": 0,
-      "jaz_dhami": 2,
-      "nostalgia_attendance": 447,
-      "dance_choreography": 172,
-      "remix_comparison": 16,
-      "mouni_roy": 64,
-      "neha_kakkar": 24,
-      "kgf_yash": 196
-    }
+    "top_unigrams": [
+      [
+        "exceptional",
+        1
+      ],
+      [
+        "breakdown",
+        1
+      ],
+      [
+        "audience",
+        1
+      ],
+      [
+        "trends",
+        1
+      ],
+      [
+        "really",
+        1
+      ],
+      [
+        "helpful",
+        1
+      ],
+      [
+        "understanding",
+        1
+      ],
+      [
+        "demographic",
+        1
+      ],
+      [
+        "growth",
+        1
+      ],
+      [
+        "great",
+        1
+      ],
+      [
+        "analysis",
+        1
+      ],
+      [
+        "what",
+        1
+      ],
+      [
+        "youth",
+        1
+      ],
+      [
+        "digital",
+        1
+      ],
+      [
+        "adoption",
+        1
+      ],
+      [
+        "secondary",
+        1
+      ],
+      [
+        "cities",
+        1
+      ],
+      [
+        "multan",
+        1
+      ],
+      [
+        "faisalabad",
+        1
+      ],
+      [
+        "informative",
+        1
+      ],
+      [
+        "practical",
+        1
+      ],
+      [
+        "insights",
+        1
+      ],
+      [
+        "keep",
+        1
+      ],
+      [
+        "high",
+        1
+      ],
+      [
+        "quality",
+        1
+      ]
+    ],
+    "vocabulary_size": 44,
+    "total_words": 44,
+    "custom_keyword_tracking": {}
+  },
+  "sentiment": {
+    "total_comments": 5,
+    "positive_count": 3,
+    "negative_count": 0,
+    "neutral_count": 2,
+    "positive_pct": 60.0,
+    "negative_pct": 0.0,
+    "neutral_pct": 40.0,
+    "mean_polarity": 0.3382,
+    "method": "Rule-Based Lexicon with Negation Inversion",
+    "limitations": "Approximation model; does not account for subtle sarcasm or non-English cultural colloquialisms."
   }
 }

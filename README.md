@@ -1,259 +1,218 @@
-# Unified Big Data Analytics Platform for YouTube Engagement Intelligence and Digital Advertising Budget Optimization
+# YouTube Social Media Data Collection & Preprocessing Pipeline
 
-A high-performance, multi-paradigm marketing analytics platform uniting **YouTube Comment Engagement Intelligence & Data Cleaning** with a **Digital Advertising Budget Optimizer & Big Data Scalability Suite** for DS391 Big Data Analytics.
-
----
-
-## 1. Project Overview
-
-The platform integrates two core digital marketing and big data analytics sub-systems into a single **13-page Streamlit enterprise application** (`app.py`), backed by an ACID-compliant **SQLite relational database** and verified by a **37-test automated pytest verification suite**:
-
-1. **Subsystem A — YouTube Comment Harvester, NLP Sentiment & Data Cleaning**:
-   - Ingests user-uploaded comment datasets (CSV/Excel) or harvests live comments via the official **YouTube Data API v3**.
-   - Executes an academic data-cleaning pipeline: whitespace stripping, numeric type coercion, ISO 8601 UTC timestamp parsing, and duplicate elimination.
-   - Computes statistical moments, lexical distributions, longitudinal trends (2016–2026), and the **Gini coefficient ($G = 0.81$)**, confirming extreme Pareto attention inequality.
-   - Performs lexicon-based sentiment analysis with negation-handling heuristics, categorizing comments into Positive, Neutral, and Negative.
-   - Generates automated data cleaning summaries and exportable Markdown reports.
-
-2. **Subsystem B — Multi-Channel Digital Advertising Budget Optimizer & Big Data Lab**:
-   - Ingests multi-channel ad performance telemetry across **Facebook, Instagram, Google, TikTok, and YouTube** with flexible column mapping (`AD_COLUMN_MAPPINGS` supporting naming aliases).
-   - Enforces strict mathematical KPI definitions with zero-denominator protections returning `NaN` and formatting as `"N/A"`:
-     - $\text{CTR} = (\text{Clicks} / \text{Impressions}) \times 100$
-     - $\text{CPC} = \text{Spend} / \text{Clicks}$
-     - $\text{CPA} = \text{Spend} / \text{Conversions}$
-     - $\text{CVR} = (\text{Conversions} / \text{Clicks}) \times 100$
-     - $\text{ROAS} = \text{Revenue} / \text{Spend}$
-   - Analyzes audience demographics across Age brackets, Gender, Metropolitan Cities, and Hardware Device types.
-   - Interactive **Budget Optimizer**: allocates user-specified capital (default Rs. 1,000,000) across channels using 5 mathematical models (`Maximize ROAS`, `Maximize Conversions`, `Maximize Revenue`, `Balanced`, `Equal`) with strict conservation ($\sum B_i = B_{total}$) and iterative boundary clamping (`min_pct`, `max_pct`).
-   - Comparative **Big Data Processing Lab**: benchmarks **In-Memory Pandas**, **Chunked Streaming**, **Streaming MapReduce**, and **Apache Spark** across 10K to 10M rows with honest runtime environment diagnostics.
-
-3. **Subsystem C — Cross-Domain Marketing Synthesis**:
-   - Synthesizes organic audience voice (Subsystem A) with paid media efficiency (Subsystem B) under strict non-causal attribution rules (paid media is the quantitative capital authority; organic sentiment provides creative feedback and customer satisfaction guardrails).
-   - Rule-based deterministic **Analytics Assistant** answering executive queries on budget recommendations, platform performance, sentiment, and processing benchmarks.
+A modular, reproducible data engineering and analytics pipeline engineered in Python and Streamlit. This project serves as the reusable data collection, cleaning, and preprocessing foundation for **Project 3: Pakistan Social Audience & Campaign Intelligence Engine**.
 
 ---
 
-## 2. Technology Stack
+## 1. Project Purpose & Scope
 
-- **Application & Presentation**: Python 3.12, Streamlit 1.66+, Plotly 7.1+, Matplotlib 3.7+, Seaborn 0.12+
-- **Data Processing & Analytics**: Pandas 3.1+, NumPy 1.24+, SciPy 1.10+, PyArrow 12.0+, OpenPyXL 3.1+
-- **Big Data & Distributed Simulation**: In-Memory Vectorization, Stream Chunking, Pure Python MapReduce, PySpark / Apache Spark (Runtime Diagnostics)
-- **Database & Storage**: SQLite 3 (WAL Mode, Parameterized Queries, Analytical SQL Views)
-- **Quality Assurance & Verification**: PyTest 9.2+, Tracemalloc (Memory Profiling), Subprocess
+Modern social intelligence platforms require robust, schema-compliant, and noise-free data ingestion before advanced machine learning (clustering, audience segmentation, and predictive campaign intelligence) can be performed.
+
+This pipeline transitions from music-specific scraping to a **domain-agnostic, multi-industry YouTube social media intelligence framework**. It provides:
+1. **Dynamic Video Discovery & Metadata Harvesting**: Query-based video discovery across any industry, extracting complete video metadata via YouTube Data API v3.
+2. **Comment Telemetry Collection**: Automated pagination for extracting user comments, engagement statistics, and timestamps.
+3. **Data Cleaning & Standardization**: Schema enforcement, whitespace trimming, duplicate resolution, non-negative integer clipping, and ISO 8601 UTC timestamp normalization.
+4. **Descriptive & Distributional Analytics**: Calculation of engagement moments and the Gini coefficient ($G$) to quantify attention inequality across content.
+5. **Temporal Pacing & Lexical Analysis**: Analysis of publishing and commenting velocity across years, days of the week, and UTC hours, along with token frequency analysis.
+6. **Supporting Qualitative Sentiment Module**: An optional, rule-based lexicon scoring engine providing exploratory sentiment indicators without making unverified machine learning claims.
+7. **Performance Benchmarking**: Systematic latency and memory stress-testing across 1x, 10x, and 100x synthetic workloads using `tracemalloc`.
 
 ---
 
-## 3. Project Directory Structure
+## 2. Standardized Data Schemas
+
+The pipeline standardizes all ingested data into two relational schemas, supporting both YouTube-specific attributes and cross-platform Brand Social Media specifications for Project 3.
+
+### 2.1 Video / Post Metadata Schema (`data/*/videos/*.csv`, `data/brand/*.csv`)
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `platform` | `VARCHAR(32)` | Social platform (e.g., YouTube, Instagram, Facebook, TikTok) |
+| `brand_name` | `VARCHAR(100)` | Target brand entity (e.g., Audionic, Zero Lifestyle, Khaadi, Jazz) |
+| `video_id` / `post_id` | `VARCHAR(64)` | Canonical post/video identifier (Primary Key) |
+| `video_title` | `VARCHAR(255)` | Full sanitized video title or post caption |
+| `video_description` | `TEXT` | Raw post/video text description |
+| `channel_name` / `account_name` | `VARCHAR(255)` | Channel or account display name |
+| `published_at` | `DATETIME (ISO 8601)` | Upload timestamp in UTC (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `source_url` / `video_url` | `VARCHAR(255)` | Canonical post URL |
+| `views` / `view_count` | `BIGINT (Nullable)` | Cumulative view count at collection time (preserved nulls) |
+| `likes` / `like_count` | `BIGINT (Nullable)` | Cumulative like count at collection time (preserved nulls) |
+| `comments_count` / `comment_count` | `BIGINT (Nullable)` | Total number of published comments (preserved nulls) |
+| `collected_at` | `DATETIME (ISO 8601)` | System UTC timestamp when metadata was harvested |
+
+### 2.2 Comment Telemetry Schema (`data/*/comments/*.csv`, `data/brand/*.csv`)
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `platform` | `VARCHAR(32)` | Social platform (e.g., YouTube) |
+| `brand_name` | `VARCHAR(100)` | Target brand entity (e.g., Audionic, Zero Lifestyle) |
+| `video_id` / `post_id` | `VARCHAR(64)` | Foreign key referencing parent post or video ID |
+| `comment_id` | `VARCHAR(64)` | Canonical comment identifier (Primary Key) |
+| `author` | `VARCHAR(255)` | Author display name or user handle (sanitized) |
+| `comment_text` | `TEXT` | Normalized comment text (HTML tags and URLs stripped) |
+| `likes` | `BIGINT (Nullable)` | Non-negative count of comment upvotes (preserved nulls) |
+| `reply_count` | `BIGINT (Nullable)` | Non-negative count of direct nested replies (preserved nulls) |
+| `published_at` | `DATETIME (ISO 8601)` | Comment publication timestamp in UTC |
+| `collected_at` | `DATETIME (ISO 8601)` | System UTC timestamp when comment was harvested |
+
+---
+
+## 3. Architecture & Modular Structure
 
 ```text
 YouTube_Comment_Scrapper_clean/
-├── app.py                                # Main unified Streamlit entry point (13 modular routes)
-├── conftest.py                           # Pytest root path resolution
-├── requirements.txt                      # Project dependency manifest
-├── README.md                             # Release and architecture documentation
-├── .env.example                          # Environment template with placeholders
-├── .gitignore                            # Comprehensive secret and artifact exclusions
-├── data/
-│   ├── marketing_intelligence.db         # Auto-initialized SQLite database (WAL mode)
+├── app.py                                # Streamlit multi-page web application entrypoint
+├── conftest.py                           # Pytest configuration and root path resolution
+├── pytest.ini                            # Pytest test discovery rules and path exclusions
+├── requirements.txt                      # Project dependency specification
+├── README.md                             # Documentation and usage guide
+├── .env.example                          # Environment template for API keys
+├── .gitignore                            # Security exclusions for secrets and artifacts
+│
+├── src/                                  # Core data engineering & analytics modules
+│   ├── youtube_scraper.py                # YouTube Data API v3 search, metadata & comment scraper
+│   ├── cleaner.py                        # Schema standardization, deduplication & normalization
+│   ├── loader.py                         # Dataset discovery and CSV/Excel loader
+│   ├── dataset_manager.py                # In-memory session state management & schema validation
+│   ├── inspection.py                     # Schema, null, and duplicate audit inspector
+│   ├── statistics.py                     # Engagement statistics & Gini coefficient calculation
+│   ├── text_temporal.py                  # Temporal velocity, lexical tokens & keyword tracking
+│   ├── sentiment_engine.py               # Optional rule-based sentiment classification
+│   ├── benchmark.py                      # Scalability stress-testing via tracemalloc (1x, 10x, 100x)
+│   ├── visualizer.py                     # Matplotlib chart generation utilities
+│   ├── report_gen.py                     # Markdown and JSON audit report generation
+│   └── ui/                               # Modular Streamlit page renderers (6 pages)
+│       ├── page_01_overview.py           # 1. Overview & System Architecture
+│       ├── page_02_collection.py         # 2. YouTube Data Collection (Keyword Search & URL Harvester)
+│       ├── page_03_cleaning.py           # 3. Data Cleaning & Preprocessing Audit
+│       ├── page_04_engagement.py         # 4. Engagement & Statistical Analytics
+│       ├── page_05_sentiment.py          # 5. Sentiment Analysis (Optional Supporting Module)
+│       └── page_06_exports.py            # 6. Data Export & Report Generation
+│
+├── data/                                 # Active standardized datasets (Clean & Ready for Brand Ingestion)
+│   ├── brand/                            # Uploaded and live brand social datasets (.gitkeep)
 │   ├── raw/
-│   │   ├── advertising_sample.csv        # Lightweight verified 250-row multi-platform sample
-│   │   ├── gali-gali-...csv              # Authentic raw YouTube scrape (1,183 rows)
-│   │   └── high-heels-...csv             # Authentic raw YouTube scrape (1,166 rows)
+│   │   ├── videos/                       # Raw video/post metadata files (.gitkeep)
+│   │   └── comments/                     # Raw comment telemetry files (.gitkeep)
 │   └── processed/
-│       ├── cleaned_comments.csv          # Cleaned 2,349-row dual-video corpus
-│       └── combined_comments.csv         # Combined raw comments
-├── outputs/
-│   ├── academic_benchmark_results.csv    # Measured benchmark execution records
-│   └── academic_benchmark_results.json   # JSON formatted benchmark records
-├── report/
-│   ├── Unified_Platform_Academic_Report.md # Formal submission report
-│   ├── Project_Report.md                 # YouTube analytics report
-│   └── ANALYTICS_REPORT.md               # Empirical benchmark report
-├── screenshots/                          # Dashboard figures and architecture diagrams
-│   ├── 01_executive_architecture_dashboard.png
-│   ├── 02_p1_youtube_sentiment_dashboard.png
-│   ├── 04_p2_advertising_kpi_dashboard.png
-│   ├── 05_p2_bigdata_scalability_benchmarks.png
-│   └── 06_p2_budget_optimizer_allocation.png
-├── src/
-│   ├── advertising_analytics.py          # CTR, CPC, CPA, CVR, ROAS formulas & zero safeguards
-│   ├── bigdata_engine.py                 # Pandas, Chunked Stream, MapReduce, Spark runtime diagnostics
-│   ├── budget_optimizer.py               # Rs. 1M constrained solver with boundary clamping
-│   ├── cleaner.py                        # Data cleaning, normalization, and deduplication
-│   ├── cross_domain.py                   # Non-causal marketing synthesis & Analytics Assistant Q&A
-│   ├── database.py                       # SQLite connection, schema creation, analytical views
-│   ├── dataset_generator.py              # Statistical synthetic advertising dataset generator
-│   ├── dataset_manager.py                # CSV/Excel loading, schema validation, column mapping
-│   ├── generate_dashboard_screenshots.py # Automated visual screenshot renderer
-│   ├── inspection.py                     # Initial dataset shape and null auditor
-│   ├── loader.py                         # Raw CSV loading utilities
-│   ├── report_gen.py                     # Legacy report generation helpers
-│   ├── report_generator_unified.py       # 6 standalone Markdown reports computed from active data
-│   ├── sentiment_engine.py               # Lexicon polarity [-1, 1], negation rules, classification
-│   ├── statistics.py                     # Descriptive statistics, Gini coefficient, skewness, kurtosis
-│   ├── text_temporal.py                  # Longitudinal, day-of-week, hour, and lexical analysis
-│   ├── visualizer.py                     # Matplotlib / Seaborn visualization routines
-│   ├── youtube_scraper.py                # Official YouTube Data API v3 harvester with safe error handling
-│   └── ui/                               # 13 decoupled Streamlit page modules
-│       ├── page_01_overview.py           # Executive Overview & KPI Dashboard
-│       ├── page_02_youtube_analytics.py  # YouTube Ingestion & Cleaning Audit
-│       ├── page_03_youtube_sentiment.py  # YouTube Lexicon Sentiment Analysis
-│       ├── page_04_youtube_engagement.py # YouTube Gini & Temporal Analysis
-│       ├── page_05_advertising_analytics.py # Multi-Platform Advertising KPIs
-│       ├── page_06_audience_insights.py  # Demographic Attribution (Age, City, Device)
-│       ├── page_07_bigdata_lab.py        # Big Data Scalability Engine Benchmarks
-│       ├── page_08_budget_optimizer.py   # Rs. 1M Constrained Budget Solver
-│       ├── page_09_dataset_management.py # CSV/Excel Uploader & Scraper Console
-│       ├── page_10_database_explorer.py  # SQLite Tables & Analytical SQL Views
-│       ├── page_11_unified_insights.py   # Cross-Domain Non-Causal Synergy
-│       ├── page_12_reports.py            # Formal Report Exporter (6 Reports)
-│       └── page_13_assistant.py          # Strategic Decision Assistant
-└── tests/                                # 37 automated pytest unit and integration tests
-    ├── test_advertising.py               # KPI math, zero denominators, audience aggregations
-    ├── test_app_integration.py           # Page registry and renderer imports
-    ├── test_big_data.py                  # Processing engines, chunking, Spark diagnostics
-    ├── test_database.py                  # SQLite schema, ingestion, and analytical views
-    ├── test_dataset_manager.py           # File upload parsing, validation, sample fallback
-    ├── test_optimizer.py                 # Budget solver conservation and constraints
-    ├── test_reports_and_assistant.py     # Markdown report generation and Q&A assistant
-    └── test_youtube.py                   # Data cleaning, Gini stats, sentiment, API scraper
+│       ├── videos/                       # Cleaned, standardized video datasets (.gitkeep)
+│       └── comments/                     # Cleaned, standardized comment datasets (.gitkeep)
+│
+├── tests/                                # Automated verification suite (38 passing tests)
+│   ├── test_scraper.py                   # URL extraction, API status & mocked API requests
+│   ├── test_cleaner.py                   # Schema enforcement, deduplication & type bounds
+│   ├── test_analytics.py                 # Gini coefficient, statistics, temporal & text analysis
+│   ├── test_dataset_manager.py           # File buffering, Excel ingestion & session state
+│   ├── test_pipeline_integration.py      # End-to-end pipeline execution & report generation
+│   ├── test_app_integration.py           # Streamlit 6-page navigation & renderer imports
+│   └── test_youtube.py                   # Legacy schema verification and compatibility tests
+│
+├── outputs/                              # Pipeline artifacts and evaluation reports
+│   ├── summary_metrics.json              # Structured numerical metrics
+│   ├── benchmark_results.json            # Scalability performance results
+│   ├── benchmark_results.csv             # Tabular benchmark timings
+│   ├── pipeline_audit_report.md          # Compiled Markdown audit report
+│   └── charts/                           # Generated analytical charts
+│
+├── archive/                              # Preserved historical assets & legacy prototypes
+│   ├── datasets/                         # Original music video datasets & advertising CSVs
+│   ├── advertising_project/              # Archived digital advertising optimizer modules & tests
+│   └── reports/                          # Previous milestone analytical reports
+│
+├── run_cleaning.py                       # CLI script: Standalone data cleaning
+├── run_pipeline.py                       # CLI script: Full end-to-end preprocessing pipeline
+└── run_benchmark.py                      # CLI script: Synthetic scalability stress-test
 ```
 
 ---
 
-## 4. 13-Page Modular Application Structure
+## 4. Installation & Environment Setup
 
-| Page # | Page Name | Module File | Primary Capabilities & Academic Highlights |
-| :---: | :--- | :--- | :--- |
-| **01** | `Executive Overview` | `page_01_overview.py` | Dual-dataset status indicators, aggregate KPIs, active processing engines, architectural diagram. |
-| **02** | `YouTube Comment Analytics` | `page_02_youtube_analytics.py` | Raw data preview, cleaning pipeline audit, schema validation, data type distributions. |
-| **03** | `YouTube Sentiment Analysis` | `page_03_youtube_sentiment.py` | Lexicon polarity distribution, positive/neutral/negative breakdown, top highlighted comments. |
-| **04** | `YouTube Engagement Insights` | `page_04_youtube_engagement.py` | Gini coefficient ($G=0.81$), power-law like distributions, temporal pacing (year, day, hour). |
-| **05** | `Advertising Analytics` | `page_05_advertising_analytics.py` | Multi-platform performance (CTR, CPC, CPA, CVR, ROAS), zero-division sandbox test. |
-| **06** | `Audience Insights` | `page_06_audience_insights.py` | Demographic performance by age bracket, gender, metropolitan city, and hardware device. |
-| **07** | `Big Data Processing Lab` | `page_07_bigdata_lab.py` | Comparative benchmarks: Pandas vs Chunked Stream vs MapReduce vs Spark (with Java diagnostics). |
-| **08** | `Advertising Budget Optimizer` | `page_08_budget_optimizer.py` | Rs. 1M constrained solver with 5 strategies, interactive min/max bounds, strict budget conservation. |
-| **09** | `Dataset Management` | `page_09_dataset_management.py` | CSV/Excel file uploader, live YouTube scraper (API v3), column mapping inspector, reset tools. |
-| **10** | `Database Explorer` | `page_10_database_explorer.py` | SQLite schema viewer, analytical SQL view queries, custom parameterized SQL query sandbox. |
-| **11** | `Unified Marketing Insights` | `page_11_unified_insights.py` | Non-causal synergy between organic audience voice and paid ad ROI, creative recommendations. |
-| **12** | `Reports and Exports` | `page_12_reports.py` | 6 downloadable Markdown reports, CSV data exports, academic audit documentation. |
-| **13** | `Analytics Assistant` | `page_13_assistant.py` | Interactive decision-support assistant answering budget, platform, and sentiment questions. |
+### 4.1 Prerequisites
+- **Python**: Version 3.10 to 3.12 (Python 3.12 verified)
+- **Git**: Installed locally
 
----
-
-## 5. Dataset Upload & Management Instructions
-
-The application supports flexible user-provided datasets without requiring pre-loaded large files:
-
-1. **Navigate to Page 09 (Dataset Management)** via the sidebar navigation.
-2. **Uploading an Advertising Dataset**:
-   - Drag and drop any `.csv`, `.xlsx`, or `.xls` file into the Advertising Uploader.
-   - The flexible column normalizer automatically maps common column aliases:
-     - *Spend*: `spend`, `cost`, `ad_spend`, `budget_spent`
-     - *Impressions*: `impressions`, `views`, `impr`
-     - *Clicks*: `clicks`, `user_clicks`, `link_clicks`
-     - *Conversions*: `conversions`, `orders`, `purchases`, `leads`
-     - *Revenue*: `revenue`, `sales`, `conversion_value`
-     - *Platform*: `platform`, `channel`, `source`
-   - The platform validates that core numeric columns exist and calculates missing ratios.
-3. **Uploading a YouTube Comment Dataset**:
-   - Drag and drop any `.csv` or `.xlsx` containing comment text.
-   - The column detector automatically discovers columns named `comment`, `comment_text`, `text`, `textDisplay`, or `body`.
-4. **Using Bundled Verified Samples**:
-   - If no custom file is uploaded, the application automatically loads lightweight, verified samples:
-     - `data/raw/advertising_sample.csv` (250 authentic multi-platform ad records).
-     - `data/processed/cleaned_comments.csv` (2,349 real scraped YouTube comments).
-5. **Resetting Session Data**:
-   - Click **Reset to Default Samples** at any time to restore the verified baseline.
-
----
-
-## 6. Big Data Engine Scalability & Benchmarks
-
-The Big Data Lab ([`src/bigdata_engine.py`](src/bigdata_engine.py)) evaluates four processing paradigms on identical aggregation tasks:
-
-1. **In-Memory Pandas (Vectorized Columnar)**: High-speed single-node aggregation for in-memory datasets ($N \le 1,000,000$).
-2. **Chunked Stream Processing (`pd.read_csv(..., chunksize=...)`)**: Iterative bounded window processing maintaining constant memory regardless of file size.
-3. **Streaming MapReduce**: Pure Python map-sort-reduce pipeline demonstrating distributed algorithms with $O(1)$ memory complexity.
-4. **Apache Spark**: Runtime environment validation via `shutil.which('java')`. If Java is absent from PATH, the platform emits an honest diagnostic report (`DIAGNOSTIC_UNAVAILABLE: Java runtime not found in system PATH`) rather than fabricating fake results.
-
-### Measured Host Benchmark Results (Python 3.12, Windows x64)
-
-| Record Workload | Processing Engine | Execution Time (s) | Peak Memory (MB) | Throughput (Rec/Sec) | Status | Operational Notes |
-| :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **10,000** | Pandas Vectorized | **0.0035 s** | **0.18 MB** | 2,857,142 | PASS | In-memory vectorized execution |
-| 10,000 | Chunked Stream (5k) | 0.0142 s | 0.22 MB | 704,225 | PASS | Bounded streaming memory |
-| 10,000 | Streaming MapReduce | 0.0481 s | 0.45 MB | 207,900 | PASS | Pure Python Map-Sort-Reduce |
-| 10,000 | Apache Spark | — | — | — | DIAGNOSTIC | Java runtime missing; diagnostic emitted |
-| **100,000** | Pandas Vectorized | **0.0185 s** | **1.62 MB** | 5,405,405 | PASS | High columnar throughput |
-| 100,000 | Chunked Stream (10k) | 0.1250 s | 1.80 MB | 800,000 | PASS | Linear streaming scaling |
-| 100,000 | Streaming MapReduce | 0.4820 s | 4.10 MB | 207,468 | PASS | Predictable bounded memory |
-| **1,000,000** | Pandas Vectorized | **0.1890 s** | **15.40 MB** | 5,291,005 | PASS | High-volume single-node aggregation |
-| 1,000,000 | Chunked Stream (50k) | 1.2400 s | 16.50 MB | 806,451 | PASS | Out-of-core dataset handling |
-| 1,000,000 | Streaming MapReduce | 4.9500 s | 38.20 MB | 202,020 | PASS | Stream sorting & reduction |
-| **10,000,000** | Pandas Vectorized | **2.2100 s** | **318.50 MB** | 4,524,886 | PASS | 10M record stress test passed |
-
-> [!NOTE]
-> **No Mandatory Large Datasets on Disk**: Benchmarking up to 10M rows occurs **strictly on demand in memory**. No multi-gigabyte CSV files are stored in the repository.
-
----
-
-## 7. Budget Allocation Solver (Rs. 1,000,000 Target)
-
-Implemented in [`src/budget_optimizer.py`](src/budget_optimizer.py):
-
-1. **Optimization Objectives**:
-   - `Maximize ROAS`: Allocates capital proportionally to historical return on ad spend.
-   - `Maximize Conversions`: Inversely proportional to CPA (lower customer acquisition costs receive higher capital).
-   - `Maximize Revenue`: Allocates capital based on raw revenue generation capacity.
-   - `Balanced (Composite)`: Balances ROAS (40%), CVR (25%), CTR (20%), and CPA efficiency (15%).
-   - `Equal Allocation`: Uniform split across channels.
-
-2. **Iterative Boundary Projection & Conservation**:
-   - Clamps weights between `min_pct` (default: 5%) and `max_pct` (default: 45%).
-   - Compensates penny drift to guarantee:
-     $$\sum_{i=1}^N \text{Allocated Budget}_i \equiv \text{Total Budget Target (e.g. Rs. 1,000,000.00)}$$
-
----
-
-## 8. Installation & Quick Start
-
-### Prerequisites
-- Python 3.10+ (Tested on Python 3.12.10 x64)
-- Git 2.30+
-
-### Step 1: Clone Repository
+### 4.2 Clone & Install Dependencies
 ```bash
-git clone https://github.com/f2023376362-eng/Youtube-comment-scrapper-and-data-cleaning.git
-cd Youtube-comment-scrapper-and-data-cleaning
-```
+# Navigate to project workspace
+cd YouTube_Comment_Scrapper_clean
 
-### Step 2: Install Dependencies
-```bash
+# Create and activate virtual environment (optional but recommended)
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+source .venv/bin/activate
+
+# Install required dependencies
 pip install -r requirements.txt
 ```
 
-### Step 3: Configure Environment Variables (Optional)
-If live scraping from YouTube is required:
+### 4.3 Configure YouTube API Key
+1. Obtain an API key from the [Google Cloud Console](https://console.cloud.google.com/) with the **YouTube Data API v3** enabled.
+2. Create a `.env` file in the project root directory:
 ```bash
-cp .env.example .env
+# Copy example configuration
+copy .env.example .env
 ```
-Edit `.env` and set:
+3. Update `.env` with your valid key:
 ```env
-YOUTUBE_API_KEY=your_actual_api_key_here
+YOUTUBE_API_KEY=AIzaSyYourActualYouTubeDataApiKeyHere
 ```
-*(If no key is configured, the application functions fully with high-quality bundled datasets).*
-
-### Step 4: Launch Streamlit Application
-```bash
-streamlit run app.py
-```
-Open `http://localhost:8501` in your browser.
+> **Offline / Bundled Mode:** If no API key is provided, the pipeline functions with the bundled verified datasets in `data/raw/` and `data/processed/`.
 
 ---
 
-## 9. Known Limitations
+## 5. Execution Workflows & CLI Commands
 
-1. **Spark Runtime Environment**: PySpark requires an active Java JDK (8, 11, or 17). When Java is absent from PATH, the system emits an honest environment diagnostic rather than fabricating benchmark numbers.
-2. **Attribution Boundary**: Organic YouTube commentary and paid advertising conversions represent separate customer journeys; the platform enforces a non-causal qualitative synthesis.
-3. **Lexicon Sentiment Scope**: Lexicon-based sentiment scoring may misinterpret complex sarcasm or multilingual slang; academic disclaimers are visibly displayed in the UI.
+### 5.1 Launch Web Interface (Streamlit)
+```bash
+streamlit run app.py
+```
+Access the application at `http://localhost:8501`. Use the sidebar navigation to move between the 6 modular stages:
+1. **Overview & Architecture**: System summary, directory structure, and active session telemetry.
+2. **YouTube Data Collection**: Keyword search across any domain or direct single-video URL scraping.
+3. **Data Cleaning & Preprocessing**: Clean raw video/comment datasets with live before/after diff audit metrics.
+4. **Engagement Analytics**: Descriptive statistics, Gini attention concentration, and temporal distributions.
+5. **Sentiment Analysis (Optional)**: Lexicon-based polarity distribution and top positive/negative comments.
+6. **Data Export & Reports**: Download cleaned datasets (CSV/Excel) and compiled Markdown reports.
+
+### 5.2 Standalone Data Cleaning CLI
+Cleans raw comments and videos from `data/raw/` and exports standardized files to `data/processed/`:
+```bash
+python run_cleaning.py
+```
+
+### 5.3 Full End-to-End Pipeline CLI
+Executes the full 7-step pipeline (loading $\rightarrow$ inspection $\rightarrow$ cleaning $\rightarrow$ statistics $\rightarrow$ temporal/text $\rightarrow$ benchmarking $\rightarrow$ report generation):
+```bash
+python run_pipeline.py
+```
+
+### 5.4 Scalability Stress-Testing CLI
+Executes scalability benchmarks across 1x, 10x, and 100x synthetic workloads:
+```bash
+python run_benchmark.py
+```
+
+### 5.5 Automated Test Suite
+Run the test suite verifying all modules:
+```bash
+pytest -v
+```
+*Current test suite status: **38 passed, 0 failed**.*
+
+---
+
+## 6. Academic Transparency & Methodological Guardrails
+
+1. **Gini Coefficient ($G$) for Attention Concentration**:
+   The Gini coefficient is computed on comment likes and reply distributions:
+   $$G = \frac{\sum_{i=1}^n \sum_{j=1}^n |x_i - x_j|}{2n^2 \bar{x}}$$
+   A high Gini value ($G > 0.70$) highlights that social media engagement exhibits extreme Pareto skew, where a fraction of top comments garner the majority of user attention.
+
+2. **Sentiment Analysis as an Exploratory Signal**:
+   The sentiment classification engine relies on a transparent lexicon model with negation inversion heuristics:
+   $$\text{polarity} = \tanh\left(\frac{\text{score}}{2.5}\right) \in [-1.0, 1.0]$$
+   It serves as a supporting heuristic indicator. It does **not** make false claims of complex contextual deep learning, BERT embeddings, or fine-tuned transformers.
+
+3. **Downstream Separation (Project 3 Boundary)**:
+   This repository is strictly the **data collection and preprocessing foundation**. Complex machine learning tasks—such as K-Means clustering, demographic audience segmentation, automated anomaly detection, and algorithmic budget recommendations—are left for downstream implementation in **Project 3: Pakistan Social Audience & Campaign Intelligence Engine**.

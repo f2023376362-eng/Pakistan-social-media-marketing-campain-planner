@@ -1,64 +1,100 @@
 """
-Data Loader Module for YouTube Comment Scraper Analytics.
-Discovers and loads the target CSV dataset automatically from data/raw/.
+Data Loader Module for YouTube Social Media Data Collection & Preprocessing.
+Discovers and loads raw or processed CSV and Excel datasets.
+Supports both Video Metadata and Comment Telemetry formats.
 """
 
 import glob
 import os
 from pathlib import Path
+from typing import Tuple, List, Optional
 import pandas as pd
 
 
+def discover_datasets(data_dir: str = "data") -> dict[str, List[Path]]:
+    """
+    Discovers all available CSV and Excel dataset files under raw, processed, and brand folders.
+    Guarantees isolation from the archive directory.
+    """
+    base = Path(data_dir)
+    results = {
+        "raw_videos": sorted(base.glob("raw/videos/*.[c][s][v]")),
+        "raw_comments": sorted(base.glob("raw/comments/*.[c][s][v]")),
+        "processed_videos": sorted(base.glob("processed/videos/*.[c][s][v]")),
+        "processed_comments": sorted(base.glob("processed/comments/*.[c][s][v]")),
+        "brand_datasets": sorted(base.glob("brand/*.[c][s][v]")),
+        "all_csvs": sorted(base.glob("**/*.csv")),
+    }
+    return results
+
+
 def find_target_csv(
-    data_dir: str = "data/raw",
-    prefix: str = "high-heels-te-nachche-video-song-ki-ka-meet-bros-",
+    data_dir: str = "data/raw/comments",
+    fallback_dir: str = "data/raw",
 ) -> Path:
     """
-    Automatically search for the CSV file starting with the specified prefix
-    inside the raw data directory. Returns the most recent matching file path.
+    Searches for the most recent CSV file in the target or fallback directory.
     """
-    raw_path = Path(data_dir)
-    if not raw_path.exists():
-        raise FileNotFoundError(f"Raw data directory does not exist: {data_dir}")
+    target_path = Path(data_dir)
+    matches = list(target_path.glob("*.csv")) if target_path.exists() else []
 
-    pattern = str(raw_path / f"{prefix}*.csv")
-    matches = glob.glob(pattern)
+    if not matches and Path(fallback_dir).exists():
+        matches = list(Path(fallback_dir).glob("**/*.csv"))
+
+    # Also check data/brand
+    brand_path = Path("data/brand")
+    if not matches and brand_path.exists():
+        matches = list(brand_path.glob("*.csv"))
 
     if not matches:
-        # Fall back to any CSV if specific prefix not found
-        all_csvs = glob.glob(str(raw_path / "*.csv"))
-        if not all_csvs:
-            raise FileNotFoundError(
-                f"No CSV files found in {data_dir} matching prefix '{prefix}'"
-            )
-        matches = all_csvs
+        raise FileNotFoundError(f"No CSV dataset files found in {data_dir}, {fallback_dir}, or data/brand")
 
-    # Pick the latest matching file by modification time
     latest_file = max(matches, key=os.path.getmtime)
-    return Path(latest_file)
+    return latest_file
 
 
 def load_dataset(
-    file_path: Path | str | None = None,
+    file_path: Optional[Path | str] = None,
+    dataset_type: str = "comments",
     prefer_processed: bool = True,
-) -> tuple[pd.DataFrame, Path]:
+) -> Tuple[Optional[pd.DataFrame], Optional[Path]]:
     """
-    Loads the YouTube comments CSV into a pandas DataFrame without mutating the file.
-    Prefers data/processed/cleaned_comments.csv if present, falling back to data/raw/.
-    Returns a tuple of (DataFrame, resolved_file_path).
+    Loads comments or videos dataset into a pandas DataFrame.
+    Prefers processed dataset if present, otherwise discovers raw or brand dataset.
+    Returns: (df, resolved_file_path) or (None, None) if no data exists.
     """
     if file_path is None:
-        processed_path = Path("data/processed/cleaned_comments.csv")
-        if prefer_processed and processed_path.is_file():
-            file_path = processed_path
+        if dataset_type == "videos":
+            proc_files = list(Path("data/processed/videos").glob("*.csv")) if Path("data/processed/videos").exists() else []
+            raw_files = list(Path("data/raw/videos").glob("*.csv")) if Path("data/raw/videos").exists() else []
+            if prefer_processed and proc_files:
+                file_path = max(proc_files, key=os.path.getmtime)
+            elif raw_files:
+                file_path = max(raw_files, key=os.path.getmtime)
+            else:
+                return None, None
         else:
-            file_path = find_target_csv()
+            proc_files = list(Path("data/processed/comments").glob("*.csv")) if Path("data/processed/comments").exists() else []
+            raw_files = list(Path("data/raw/comments").glob("*.csv")) if Path("data/raw/comments").exists() else []
+            brand_files = list(Path("data/brand").glob("*.csv")) if Path("data/brand").exists() else []
+            if prefer_processed and proc_files:
+                file_path = max(proc_files, key=os.path.getmtime)
+            elif raw_files:
+                file_path = max(raw_files, key=os.path.getmtime)
+            elif brand_files:
+                file_path = max(brand_files, key=os.path.getmtime)
+            else:
+                return None, None
     else:
         file_path = Path(file_path)
 
     if not file_path.is_file():
         raise FileNotFoundError(f"Target dataset file not found: {file_path}")
 
-    df = pd.read_csv(file_path, encoding="utf-8-sig")
-    return df, file_path
+    # Load based on extension
+    if file_path.suffix.lower() in [".xlsx", ".xls"]:
+        df = pd.read_excel(file_path)
+    else:
+        df = pd.read_csv(file_path, encoding="utf-8-sig")
 
+    return df, file_path

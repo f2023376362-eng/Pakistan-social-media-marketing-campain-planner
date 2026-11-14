@@ -1,39 +1,61 @@
 """
-Temporal and Text Analysis Module for YouTube Comments.
-Examines publication timelines, engagement pacing, comment length, and vocabulary.
+Temporal Pacing and Lexical Text Analysis Engine.
+Analyzes temporal activity distributions (yearly, day-of-week, UTC hour)
+and extracts lexical features, word counts, emoji usage, and frequent keywords dynamically.
 """
 
 from collections import Counter
 import re
-from typing import Any
+from typing import Any, Dict, List, Optional
+import numpy as np
 import pandas as pd
 
-
-# Common English and Hinglish/Hindi stopwords to filter for clean lexical analysis
-STOPWORDS = {
-    "the", "and", "is", "in", "to", "of", "a", "it", "this", "that", "i", "you",
-    "for", "on", "my", "with", "me", "song", "very", "are", "so", "at", "be",
-    "was", "have", "has", "he", "she", "but", "not", "from", "by", "all", "we",
-    "they", "will", "do", "no", "or", "an", "what", "who", "which", "there",
-    "just", "like", "one", "can", "if", "out", "up", "about", "your", "as",
-    "ki", "ka", "ke", "ko", "hai", "bhi", "ho", "se", "ye", "yeh", "kya", "toh",
-    "ab", "aur", "tha", "thi", "the", "mai", "main", "par", "kar", "kare",
-    "after", "watching", "still", "when", "how", "why", "their", "its", "into"
+# Multi-lingual stopwords (English, Urdu/Hindi Romanized, common social expressions)
+GENERIC_STOPWORDS = {
+    "the", "and", "this", "that", "with", "for", "you", "are", "was", "very", "nice", "good", "super",
+    "best", "love", "dil", "hai", "ki", "ka", "ke", "ko", "se", "me", "bhi", "ho", "par", "kya", "yeh", "woh",
+    "tha", "thi", "the", "h", "to", "is", "in", "it", "my", "of", "on", "at", "by", "an", "as", "be", "all",
+    "so", "one", "na", "ne", "si", "ek", "mera", "meri", "mere", "mai", "main", "mujhe", "hum", "tum", "aap",
+    "karo", "kare", "kar", "karna", "liye", "baat", "lag", "laga", "rahe", "raha", "rahi", "jaise", "aise",
+    "from", "your", "have", "has", "had", "will", "would", "can", "could", "should", "not", "but", "about",
+    "after", "watching", "still", "when", "how", "why", "their", "its", "into", "just", "like"
 }
 
 
-def analyze_temporal(df: pd.DataFrame) -> dict[str, Any]:
+def analyze_temporal(
+    df: pd.DataFrame,
+    date_col: Optional[str] = None,
+    timestamp_col: Optional[str] = None
+) -> Dict[str, Any]:
     """
-    Analyzes comment publication timestamps.
+    Analyzes temporal patterns across comments or video publication timestamps:
+    - Span in days, earliest and latest publication timestamps
+    - Yearly publication breakdown
+    - Day of week activity (Monday-Sunday)
+    - Hour of day activity (UTC 00:00 - 23:00)
     """
-    if "published_at" not in df.columns:
-        return {}
+    target_col = timestamp_col or date_col or "published_at"
+    if target_col not in df.columns:
+        if "published_at" in df.columns:
+            target_col = "published_at"
+        elif "date" in df.columns:
+            target_col = "date"
+        else:
+            return {}
 
-    dt_series = pd.to_datetime(df["published_at"], errors="coerce", utc=True)
-    valid_dt = dt_series.dropna()
+    parsed_dates = pd.to_datetime(df[target_col], errors="coerce", utc=True)
+    valid_dt = parsed_dates.dropna()
 
     if valid_dt.empty:
-        return {}
+        return {
+            "earliest_comment_utc": "N/A",
+            "latest_comment_utc": "N/A",
+            "total_span_days": 0,
+            "yearly_distribution": {},
+            "day_of_week_distribution": {},
+            "hour_of_day_distribution_utc": {},
+            "hourly_distribution": {},
+        }
 
     earliest = valid_dt.min()
     latest = valid_dt.max()
@@ -52,11 +74,6 @@ def analyze_temporal(df: pd.DataFrame) -> dict[str, Any]:
     hour_counts = valid_dt.dt.hour.value_counts().sort_index().to_dict()
     hour_dict = {f"{h:02d}:00": int(hour_counts.get(h, 0)) for h in range(24)}
 
-    # Longitudinal era categorization
-    launch_era_2016 = int((valid_dt.dt.year == 2016).sum())
-    catalog_era_2017_2024 = int(((valid_dt.dt.year >= 2017) & (valid_dt.dt.year <= 2024)).sum())
-    resurgence_era_2025_2026 = int((valid_dt.dt.year >= 2025).sum())
-
     return {
         "earliest_comment_utc": earliest.strftime("%Y-%m-%d %H:%M:%S UTC"),
         "latest_comment_utc": latest.strftime("%Y-%m-%d %H:%M:%S UTC"),
@@ -64,62 +81,56 @@ def analyze_temporal(df: pd.DataFrame) -> dict[str, Any]:
         "yearly_distribution": yearly_dict,
         "day_of_week_distribution": dow_dict,
         "hour_of_day_distribution_utc": hour_dict,
-        "era_breakdown": {
-            "launch_window_2016": launch_era_2016,
-            "catalog_tail_2017_2024": catalog_era_2017_2024,
-            "resurgence_phase_2025_2026": resurgence_era_2025_2026,
-            "resurgence_share_pct": round(resurgence_era_2025_2026 / len(valid_dt) * 100, 2),
-        },
+        "hourly_distribution": hour_dict,
     }
 
 
-def analyze_text(df: pd.DataFrame) -> dict[str, Any]:
+def analyze_text(
+    df: pd.DataFrame,
+    text_col: Optional[str] = None,
+    custom_keywords: Optional[List[str]] = None
+) -> Dict[str, Any]:
     """
-    Analyzes lexical features, comment length, and domain keywords.
+    Analyzes lexical characteristics, character/word length, questions, emojis,
+    and extracts top frequent keywords dynamically.
     """
-    if "comment" not in df.columns:
+    if text_col is None:
+        text_col = "comment_text" if "comment_text" in df.columns else ("comment" if "comment" in df.columns else None)
+
+    if not text_col or text_col not in df.columns:
         return {}
 
-    comments = df["comment"].dropna().astype(str)
+    comments = df[text_col].dropna().astype(str)
     total_comments = len(comments)
+    if total_comments == 0:
+        return {}
 
     char_lengths = comments.str.len()
     word_counts = comments.apply(lambda text: len(text.split()))
 
-    # Punctuation and emoji expressions
+    # Expressions
     has_question = int(comments.str.contains(r"\?", regex=True).sum())
     has_exclamation = int(comments.str.contains(r"!", regex=True).sum())
     has_emoji = int(comments.apply(lambda s: bool(re.search(r"[\U00010000-\U0010ffff]", s))).sum())
 
-    # Token frequency extraction
+    # Token frequency
     tokens = []
     for comment in comments:
         clean_str = re.sub(r"[^\w\s]", " ", comment.lower())
-        words = [w for w in clean_str.split() if len(w) > 2 and w not in STOPWORDS and not w.isdigit()]
+        words = [w for w in clean_str.split() if len(w) > 2 and w not in GENERIC_STOPWORDS and not w.isdigit()]
         tokens.extend(words)
 
     word_freq = Counter(tokens).most_common(25)
 
-    # Thematic entity mentions
-    lower_comments = comments.str.lower()
-    thematic_mentions = {
-        "kareena_kapoor": int(lower_comments.str.contains(r"kareena|bebo", regex=True).sum()),
-        "honey_singh": int(lower_comments.str.contains(r"honey\s*singh|yo\s*yo", regex=True).sum()),
-        "arjun_kapoor": int(lower_comments.str.contains(r"arjun", regex=True).sum()),
-        "meet_bros": int(lower_comments.str.contains(r"meet\s*bros", regex=True).sum()),
-        "jaz_dhami": int(lower_comments.str.contains(r"jaz|dhami", regex=True).sum()),
-        "nostalgia_attendance": int(
-            lower_comments.str.contains(
-                r"202\d|legend|still|childhood|old\s*is\s*gold|hajri|attendance|anyone\s*here",
-                regex=True,
-            ).sum()
-        ),
-        "dance_choreography": int(lower_comments.str.contains(r"dance|step|move|heel|heels", regex=True).sum()),
-        "remix_comparison": int(lower_comments.str.contains(r"remix|original|better|version", regex=True).sum()),
-        "mouni_roy": int(lower_comments.str.contains(r"mouni|muni", regex=True).sum()),
-        "neha_kakkar": int(lower_comments.str.contains(r"neha|kakkar", regex=True).sum()),
-        "kgf_yash": int(lower_comments.str.contains(r"kgf|yash|rocky", regex=True).sum()),
-    }
+    # Configurable keyword tracking
+    custom_tracking = {}
+    if custom_keywords:
+        lower_comments = comments.str.lower()
+        for kw in custom_keywords:
+            kw_clean = kw.strip().lower()
+            if kw_clean:
+                pattern = r"\b" + re.escape(kw_clean) + r"\b"
+                custom_tracking[kw_clean] = int(lower_comments.str.contains(pattern, regex=True).sum())
 
     return {
         "total_analyzed_comments": total_comments,
@@ -128,7 +139,7 @@ def analyze_text(df: pd.DataFrame) -> dict[str, Any]:
             "mean": round(float(char_lengths.mean()), 2),
             "median": float(char_lengths.median()),
             "max": int(char_lengths.max()),
-            "std": round(float(char_lengths.std()), 2),
+            "std": round(float(char_lengths.std()), 2) if len(char_lengths) > 1 else 0.0,
         },
         "word_count": {
             "min": int(word_counts.min()),
@@ -145,5 +156,8 @@ def analyze_text(df: pd.DataFrame) -> dict[str, Any]:
             "emoji_pct": round(has_emoji / total_comments * 100, 2) if total_comments > 0 else 0.0,
         },
         "top_keywords": [{"keyword": k, "count": c} for k, c in word_freq],
-        "thematic_mentions": thematic_mentions,
+        "top_unigrams": word_freq,
+        "vocabulary_size": len(set(tokens)),
+        "total_words": len(tokens),
+        "custom_keyword_tracking": custom_tracking,
     }
