@@ -48,29 +48,43 @@ COMMENT_SCHEMA_COLUMNS = [
 # Standardized Brand Social Media Schemas (Project 3 Specification)
 BRAND_VIDEO_SCHEMA_COLUMNS = [
     "platform",
+    "source_platform",
     "brand_name",
     "video_id",
     "video_title",
     "video_description",
+    "channel_id",
+    "channel_title",
     "channel_name",
     "published_at",
-    "views",
-    "likes",
-    "comments_count",
+    "video_url",
     "source_url",
+    "view_count",
+    "views",
+    "like_count",
+    "likes",
+    "comment_count",
+    "comments_count",
+    "data_provenance",
+    "data_role",
     "collected_at"
 ]
 
 BRAND_COMMENT_SCHEMA_COLUMNS = [
     "platform",
+    "source_platform",
     "brand_name",
     "video_id",
+    "video_url",
     "comment_id",
+    "parent_comment_id",
     "author",
     "comment_text",
     "likes",
     "reply_count",
     "published_at",
+    "data_provenance",
+    "data_role",
     "collected_at"
 ]
 
@@ -206,6 +220,7 @@ def get_video_details(video_ids: List[str] | str,
 
                 records.append({
                     "platform": platform,
+                    "source_platform": platform,
                     "brand_name": brand_name or "",
                     "video_id": v_id,
                     "post_id": v_id,
@@ -223,6 +238,8 @@ def get_video_details(video_ids: List[str] | str,
                     "likes": v_likes,
                     "comment_count": v_comments,
                     "comments_count": v_comments,
+                    "data_provenance": "real_public",
+                    "data_role": "analysis",
                     "collected_at": collected_at
                 })
         except requests.exceptions.RequestException as e:
@@ -314,10 +331,11 @@ def scrape_video_comments(video_url_or_id: Optional[str] = None,
                           api_key: Optional[str] = None,
                           video_id: Optional[str] = None,
                           brand_name: Optional[str] = None,
-                          platform: str = "YouTube") -> Tuple[pd.DataFrame, Optional[str]]:
+                          platform: str = "YouTube",
+                          include_replies: bool = True) -> Tuple[pd.DataFrame, Optional[str]]:
     """
     Harvests public comments for a specific YouTube video via YouTube Data API v3.
-    Supports API pagination via nextPageToken and brand attribution.
+    Supports API pagination via nextPageToken, brand attribution, and threaded replies.
     Returns: (DataFrame matching COMMENT_SCHEMA_COLUMNS & BRAND_COMMENT_SCHEMA_COLUMNS, error_message)
     """
     target = video_url_or_id or video_id
@@ -333,11 +351,12 @@ def scrape_video_comments(video_url_or_id: Optional[str] = None,
     page_token = None
     target_count = max(1, max_comments)
     collected_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    video_url = f"https://www.youtube.com/watch?v={vid}"
 
     try:
         while len(records) < target_count:
             params = {
-                "part": "snippet",
+                "part": "snippet,replies" if include_replies else "snippet",
                 "videoId": vid,
                 "maxResults": min(100, target_count - len(records)),
                 "order": order,
@@ -370,17 +389,48 @@ def scrape_video_comments(video_url_or_id: Optional[str] = None,
 
                 records.append({
                     "platform": platform,
+                    "source_platform": platform,
                     "brand_name": brand_name or "",
                     "video_id": vid,
                     "post_id": vid,
+                    "video_url": video_url,
                     "comment_id": c_id,
+                    "parent_comment_id": None,
                     "author": snippet_top.get("authorDisplayName", "Anonymous"),
                     "comment_text": snippet_top.get("textDisplay", ""),
                     "likes": int(snippet_top.get("likeCount", 0)),
                     "published_at": snippet_top.get("publishedAt", ""),
                     "reply_count": reply_count,
+                    "data_provenance": "real_public",
+                    "data_role": "analysis",
                     "collected_at": collected_at
                 })
+
+                # Harvest replies if present in thread
+                if include_replies and reply_count > 0 and "replies" in it and "comments" in it["replies"]:
+                    for reply in it["replies"]["comments"]:
+                        if len(records) >= target_count:
+                            break
+                        r_snippet = reply.get("snippet", {})
+                        r_id = reply.get("id", "")
+                        records.append({
+                            "platform": platform,
+                            "source_platform": platform,
+                            "brand_name": brand_name or "",
+                            "video_id": vid,
+                            "post_id": vid,
+                            "video_url": video_url,
+                            "comment_id": r_id,
+                            "parent_comment_id": c_id,
+                            "author": r_snippet.get("authorDisplayName", "Anonymous"),
+                            "comment_text": r_snippet.get("textDisplay", ""),
+                            "likes": int(r_snippet.get("likeCount", 0)),
+                            "published_at": r_snippet.get("publishedAt", ""),
+                            "reply_count": 0,
+                            "data_provenance": "real_public",
+                            "data_role": "analysis",
+                            "collected_at": collected_at
+                        })
 
                 if len(records) >= target_count:
                     break
@@ -403,9 +453,11 @@ def scrape_video_comments(video_url_or_id: Optional[str] = None,
 
 
 def scrape_comments_for_videos(video_ids: List[str],
-                               max_comments_per_video: int = 50,
-                               order: str = "relevance",
-                               api_key: Optional[str] = None) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+                              max_comments_per_video: int = 50,
+                              order: str = "relevance",
+                              api_key: Optional[str] = None,
+                              brand_name: Optional[str] = None,
+                              include_replies: bool = True) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
     """
     Harvests comments across multiple videos in a batch.
     Returns: (combined_comments_df, log_of_statuses)
@@ -414,7 +466,7 @@ def scrape_comments_for_videos(video_ids: List[str],
     statuses = []
 
     for vid in video_ids:
-        c_df, err = scrape_video_comments(vid, max_comments=max_comments_per_video, order=order, api_key=api_key)
+        c_df, err = scrape_video_comments(vid, max_comments=max_comments_per_video, order=order, api_key=api_key, brand_name=brand_name, include_replies=include_replies)
         if err:
             statuses.append({"video_id": vid, "count": len(c_df), "status": "ERROR", "message": err})
         else:

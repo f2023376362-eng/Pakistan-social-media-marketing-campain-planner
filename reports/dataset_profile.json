@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "generated_at": "2026-11-18T17:58:25.376836Z",
+    "pipeline_stage": "Phase 1 - Fashion Dataset Preparation",
+    "project": "Project 3 - Pakistan Social Audience & Campaign Intelligence Engine",
+    "source_file": "data/raw/pakistan_social_media_posts.csv",
+    "source_sha256": "7fc6b6c5ccd04a9b03d4718c4fafd01c1b525cc2481240bcda2bbc501f928240",
+    "target_file": "data/processed/fashion_development.csv",
+    "target_sha256": "6ba8dd211951138f5b6f36613b9e4cf13b712e9492aa1dcdbf5a1ef51416c948",
+    "data_provenance": "synthetic",
+    "data_role": "development"
+  },
+  "record_counts": {
+    "total_raw_records": 3030,
+    "fashion_raw_records": 444,
+    "exact_duplicates_removed": 8,
+    "final_fashion_records": 436,
+    "final_columns_count": 19
+  },
+  "columns": [
+    "post_id",
+    "timestamp",
+    "platform",
+    "brand_category",
+    "content_type",
+    "topic",
+    "caption",
+    "hashtags",
+    "language",
+    "city",
+    "audience_segment",
+    "followers_count",
+    "verified",
+    "likes",
+    "shares",
+    "comments",
+    "sentiment",
+    "data_provenance",
+    "data_role"
+  ],
+  "missing_values": {
+    "hashtags": 7,
+    "followers_count": 5
+  },
+  "distributions": {
+    "platform": {
+      "Instagram": 112,
+      "TikTok": 107,
+      "Facebook": 102,
+      "YouTube": 66,
+      "X (Twitter)": 49
+    },
+    "brand_category": {
+      "Fashion & Lifestyle": 436
+    },
+    "content_type": {
+      "Short Video/Reel": 136,
+      "Image Post": 121,
+      "Text Post": 59,
+      "Poll/Question": 51,
+      "Carousel": 43,
+      "Live Stream": 26
+    },
+    "topic": {
+      "Sales & Offers": 65,
+      "Ramadan & Eid": 63,
+      "Cricket & PSL": 57,
+      "Humor & Memes": 51,
+      "Fashion & Weddings": 47,
+      "Tech & Gadgets": 43,
+      "Education & Career": 43,
+      "Food": 36,
+      "Independence Day": 31
+    },
+    "language": {
+      "Roman Urdu": 153,
+      "Mixed (Urdu-English)": 114,
+      "English": 102,
+      "Urdu": 67
+    },
+    "city": {
+      "Karachi": 116,
+      "Lahore": 108,
+      "Islamabad": 54,
+      "Multan": 45,
+      "Peshawar": 44,
+      "Faisalabad": 31,
+      "Rawalpindi": 29,
+      "Quetta": 9
+    },
+    "audience_segment": {
+      "Gen Z (18-24)": 114,
+      "Young Professionals (25-34)": 102,
+      "Students": 100,
+      "Parents (35-50)": 64,
+      "Small Business Owners": 56
+    },
+    "sentiment": {
+      "Positive": 224,
+      "Neutral": 134,
+      "Negative": 78
+    },
+    "verified": {
+      "false": 348,
+      "true": 88
+    }
+  },
+  "engagement_statistics": {
+    "likes": {
+      "count": 436,
+      "mean": 2183.940366972477,
+      "std": 4877.0264226750105,
+      "min": -3513.0,
+      "p25": 264.0,
+      "median": 817.5,
+      "p75": 2013.25,
+      "max": 45898.0,
+      "nulls": 0
+    },
+    "shares": {
+      "count": 436,
+      "mean": 272.8073394495413,
+      "std": 678.4880110859646,
+      "min": 1.0,
+      "p25": 29.75,
+      "median": 86.5,
+      "p75": 240.0,
+      "max": 7178.0,
+      "nulls": 0
+    },
+    "comments": {
+      "count": 436,
+      "mean": 351.50688073394497,
+      "std": 657.9983212418891,
+      "min": 2.0,
+      "p25": 42.75,
+      "median": 139.0,
+      "p75": 348.0,
+      "max": 5126.0,
+      "nulls": 0
+    },
+    "followers_count": {
+      "count": 431,
+      "mean": 79474.29930394431,
+      "std": 138603.43603541784,
+      "min": 500.0,
+      "p25": 15435.5,
+      "median": 33699.0,
+      "p75": 78174.0,
+      "max": 1224500.0,
+      "nulls": 5
+    }
+  },
+  "temporal": {
+    "earliest_timestamp": "2024-01-01 12:07",
+    "latest_timestamp": "2024-12-31 11:31",
+    "unique_timestamps": 435
+  }
+}
